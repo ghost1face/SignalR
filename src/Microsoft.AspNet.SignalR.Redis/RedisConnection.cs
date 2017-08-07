@@ -11,9 +11,15 @@ namespace Microsoft.AspNet.SignalR.Redis
     public class RedisConnection : IRedisConnection
     {
         private StackExchange.Redis.ISubscriber _redisSubscriber;
+        private IMessageEncryptor _messageEncryptor;
         private ConnectionMultiplexer _connection;
         private TraceSource _trace;
         private ulong _latestMessageId;
+
+        public RedisConnection(IDependencyResolver resolver)
+        {
+            _messageEncryptor = resolver.Resolve<IMessageEncryptor>();
+        }
 
         public async Task ConnectAsync(string connectionString, TraceSource trace)
         {
@@ -56,7 +62,7 @@ namespace Microsoft.AspNet.SignalR.Redis
             _trace.TraceInformation("Subscribing to key: " + key);
             await _redisSubscriber.SubscribeAsync(key, (channel, data) =>
             {
-                var message = RedisMessage.FromBytes(data, _trace);
+                var message = RedisMessage.FromBytes(_messageEncryptor, data, _trace);
                 onMessage(0, message);
 
                 // Save the last message id in just in case redis shuts down

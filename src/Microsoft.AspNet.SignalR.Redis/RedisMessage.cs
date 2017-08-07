@@ -17,11 +17,11 @@ namespace Microsoft.AspNet.SignalR.Redis
         public ulong Id { get; private set; }
         public ScaleoutMessage ScaleoutMessage { get; private set; }
 
-        public static byte[] ToBytes(IList<Message> messages)
+        public static byte[] ToBytes(IMessageEncryptor encryptor, IList<Message> messages)
         {
             if (messages == null)
             {
-                throw new ArgumentNullException("messages");
+                throw new ArgumentNullException(nameof(messages));
             }
 
             using (var ms = new MemoryStream())
@@ -34,14 +34,16 @@ namespace Microsoft.AspNet.SignalR.Redis
                 binaryWriter.Write(buffer.Length);
                 binaryWriter.Write(buffer);
 
-                return ms.ToArray();
+                return encryptor.Encrypt(ms.ToArray());
             }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0")]
-        public static RedisMessage FromBytes(byte[] data, TraceSource trace)
+        public static RedisMessage FromBytes(IMessageEncryptor encryptor, byte[] data, TraceSource trace)
         {
-            using (var stream = new MemoryStream(data))
+            var decryptedData = encryptor.Decrypt(data);
+
+            using (var stream = new MemoryStream(decryptedData))
             {
                 var message = new RedisMessage();
 

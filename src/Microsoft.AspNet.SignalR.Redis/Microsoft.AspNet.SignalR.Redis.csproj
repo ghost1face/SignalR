@@ -59,7 +59,9 @@
       <Link>Infrastructure\DispatchingTaskCompletionSource.cs</Link>
     </Compile>
     <Compile Include="DependencyResolverExtensions.cs" />
+    <Compile Include="IMessageEncryptor.cs" />
     <Compile Include="IRedisConnection.cs" />
+    <Compile Include="MessageEncryptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RedisConnection.cs" />
     <Compile Include="RedisMessage.cs" />

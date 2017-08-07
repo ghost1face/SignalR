@@ -23,6 +23,7 @@ namespace Microsoft.AspNet.SignalR.Redis
         private readonly string _key;
         private readonly TraceSource _trace;
         private readonly ITraceManager _traceManager;
+        private readonly IMessageEncryptor _messageEncryptor;
 
         private IRedisConnection _connection;
         private string _connectionString;
@@ -41,7 +42,7 @@ namespace Microsoft.AspNet.SignalR.Redis
         {
             if (configuration == null)
             {
-                throw new ArgumentNullException("configuration");
+                throw new ArgumentNullException(nameof(configuration));
             }
 
             _connection = connection;
@@ -51,6 +52,7 @@ namespace Microsoft.AspNet.SignalR.Redis
             _key = configuration.EventKey;
 
             _traceManager = resolver.Resolve<ITraceManager>();
+            _messageEncryptor = resolver.Resolve<IMessageEncryptor>();
 
             _trace = _traceManager["SignalR." + nameof(RedisMessageBus)];
 
@@ -84,7 +86,7 @@ namespace Microsoft.AspNet.SignalR.Redis
                   redis.call('PUBLISH', KEYS[1], payload)
                   return {newId, ARGV[1], payload}",
                 _key,
-                RedisMessage.ToBytes(messages));
+                RedisMessage.ToBytes(_messageEncryptor, messages));
         }
 
         protected override void Dispose(bool disposing)
